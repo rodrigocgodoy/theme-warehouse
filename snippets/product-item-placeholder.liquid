@@ -1,0 +1,124 @@
+{%- comment -%}
+This create a placeholder for product item, and is used exclusively on home page for the onboarding process
+{%- endcomment -%}
+
+{%- assign modulo_on_sale = forloop.index0 | modulo: 2 -%}
+
+{% if modulo_on_sale == 0 %}
+  {%- assign on_sale = true -%}
+{%- else -%}
+  {%- assign on_sale = false -%}
+{%- endif -%}
+
+{%- capture random_price -%}{% cycle 7700, 4400, 7349, 4000, 3000, 3999 %}{%- endcapture -%}
+{%- assign random_compare_at_price = random_price | plus: 1000 -%}
+
+<div class="product-item {% if horizontal %}product-item--horizontal{% elsif list %}product-item--list{% else %}product-item--vertical{% endif %} {{ grid_classes }}">
+  {%- capture product_labels -%}
+    {%- if settings.show_discount and on_sale -%}
+      {%- if settings.discount_mode == 'percentage' -%}
+        {%- assign savings = random_compare_at_price | minus: random_price | times: 100.0 | divided_by: random_compare_at_price | round | append: '%' -%}
+      {%- else -%}
+        {%- capture savings -%}<span>{{ random_compare_at_price | minus: random_price | money }}</span>{%- endcapture -%}
+      {%- endif -%}
+
+      <span class="product-label product-label--on-sale">{{ 'collection.product.discount_html' | t: savings: savings }}</span>
+    {%- endif -%}
+  {%- endcapture -%}
+
+  {%- if product_labels != blank -%}
+    <div class="product-item__label-list">
+      {{- product_labels -}}
+    </div>
+  {%- endif -%}
+
+  <a href="#" class="product-item__image-wrapper">
+    {%- capture placeholder -%}{% cycle 'product-1', 'product-2', 'product-3', 'product-4', 'product-5', 'product-6' %}{% endcapture %}
+    {{- placeholder | placeholder_svg_tag: 'placeholder-svg' -}}
+  </a>
+
+  <div class="product-item__info">
+    <div class="product-item__info-inner">
+      {%- capture price_list -%}
+        <div class="product-item__price-list price-list">
+          {%- if on_sale -%}
+            <span class="price price--highlight">{{ random_price | money }}</span>
+            <span class="price price--compare">{{ random_compare_at_price | money }}</span>
+          {%- else -%}
+            <span class="price">{{ random_price | money }}</span>
+          {%- endif -%}
+        </div>
+      {%- endcapture -%}
+
+      {%- capture vendor -%}
+        {%- if settings.show_vendor -%}
+          <a class="product-item__vendor link" href="#">{{ 'home_page.onboarding.vendor_title' | t }}</a>
+        {%- endif -%}
+      {%- endcapture -%}
+
+      {%- if settings.product_price_position == 'before_title' -%}
+        {{ price_list }}
+      {%- endif -%}
+
+      {%- if settings.product_price_position == 'after_title' -%}
+        {{ vendor }}
+      {%- endif -%}
+
+      <h2 class="product-item__title text--strong">
+        <a href="#" class="link">{{ 'home_page.onboarding.product_title' | t }}</a>
+      </h2>
+
+      {%- if settings.product_price_position == 'before_title' -%}
+        {{ vendor }}
+      {%- endif -%}
+
+      {%- if settings.product_price_position == 'after_title' -%}
+        {{ price_list }}
+      {%- endif -%}
+
+      {%- if settings.show_reviews_badge -%}
+        <div class="product-item__reviews-badge">
+          <span class="spr-badge">
+            <span class="spr-starrating spr-badge-starrating">
+              <i class="spr-icon spr-icon-star-empty"></i><!--
+              --><i class="spr-icon spr-icon-star-empty"></i><!--
+              --><i class="spr-icon spr-icon-star-empty"></i><!--
+              --><i class="spr-icon spr-icon-star-empty"></i><!--
+              --><i class="spr-icon spr-icon-star-empty"></i>
+            </span><!--
+
+            --><span class="spr-badge-caption">No reviews</span>
+          </span>
+        </div>
+      {%- endif -%}
+
+      {%- if settings.show_inventory_quantity -%}
+        {%- capture random_inventory -%}{% cycle 1, 24, 10, 150, 40, 38 %}{%- endcapture -%}
+        {%- assign random_inventory = random_inventory | times: 1 -%}
+
+        {%- if settings.low_inventory_threshold > 0 -%}
+          {%- if random_inventory <= settings.low_inventory_threshold or random_inventory <= settings.low_inventory_threshold -%}
+            <span class="product-item__inventory inventory inventory--low">{{ 'collection.product.low_stock_with_quantity_count' | t: count: random_inventory }}</span>
+          {%- else -%}
+            <span class="product-item__inventory inventory inventory--high">{{ 'collection.product.in_stock_with_quantity_count' | t: count: random_inventory }}</span>
+          {%- endif -%}
+        {%- else -%}
+          <span class="product-item__inventory inventory inventory--high">{{ 'collection.product.in_stock' | t }}</span>
+        {%- endif -%}
+      <div style="padding-bottom: 20px">
+    <figure style="fill:#008A00;float:left;margin: 5px 10px 0px 0px;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill-rule="nonzero" d="M10.587 14.805H7.01a2.452 2.452 0 1 1-4.452-1.937l-1.56-.003.002-1.2 3.6.008v.025h.048c1.167 0 2.143.815 2.39 1.907h3.52a2.455 2.455 0 0 1 1.836-1.844l2.423-6.352a.6.6 0 0 0-.56-.814H4.6v-1.2h9.658a1.8 1.8 0 0 1 1.697 2.4h1.677l1.409 4.225-2.027 4.787-1.701-.007a2.452 2.452 0 0 1-4.726.005zm4.751-1.205l.883.004 1.538-3.634-.991-2.975h-1.27l-1.835 4.809c.834.253 1.48.939 1.675 1.796zM7 5.79v1.2H1v-1.2h6zM4.6 8.222v1.2H2.2v-1.2h2.4zm.049 7.178a1.251 1.251 0 1 0 0-2.502 1.251 1.251 0 0 0 0 2.502zm8.3 0a1.251 1.251 0 1 0 0-2.502 1.251 1.251 0 0 0 0 2.502z"></path></svg></figure>
+    <p style="overflow: hidden; margin-top:0px"><span style="color:#008A00">Frete grátis <svg style="fill:#008A00;margin-left:5px" width="41" height="13" viewBox="0 0 41 13" xmlns="http://www.w3.org/2000/svg"><path fill-rule="nonzero" d="M2.628 0h5.255L5.255 4.643h4.38L2.628 13l1.751-5.571H0L2.628 0zm11.589 9.533h-1.959l1.674-7.515H19.5l-.376 1.69h-3.61l-.25 1.172h3.519l-.376 1.69h-3.53l-.66 2.963zm9.468.136c-2.334 0-3.484-1.105-3.484-2.682 0-.124.034-.383.057-.496l1.002-4.473h1.992l-.99 4.428c-.012.057-.034.18-.034.316.011.62.49 1.217 1.457 1.217 1.048 0 1.583-.654 1.776-1.533l.991-4.428h1.981l-.99 4.462c-.41 1.825-1.412 3.189-3.758 3.189zm10.118-.136h-5.01l1.673-7.515h1.959l-1.287 5.825h3.04l-.375 1.69zm6.678 0h-5.01l1.674-7.515h1.959l-1.287 5.825h3.04l-.376 1.69z"></path></svg> </span> 
+    <br> <span style="font-size:14px;display:block;line-height:19px"> Comprando dentro das próximas <span style="color:red">2 h 57 min</span></span></p>
+<!--     <span style="color: #008A00; font-size:14px"><i style="vertical-align: middle;padding-right:5px;"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-check-circle" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+<path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/>
+</svg></i> Garantia de 30 dias direto em nossa loja</span><br> -->
+    <span style="color: #008A00; font-size:14px"><i style="vertical-align: middle;padding-right:5px;"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-bootstrap-reboot" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" d="M1.161 8a6.84 6.84 0 1 0 6.842-6.84.58.58 0 0 1 0-1.16 8 8 0 1 1-6.556 3.412l-.663-.577a.58.58 0 0 1 .227-.997l2.52-.69a.58.58 0 0 1 .728.633l-.332 2.592a.58.58 0 0 1-.956.364l-.643-.56A6.812 6.812 0 0 0 1.16 8zm5.48-.079V5.277h1.57c.881 0 1.416.499 1.416 1.32 0 .84-.504 1.324-1.386 1.324h-1.6zm0 3.75V8.843h1.57l1.498 2.828h1.314L9.377 8.665c.897-.3 1.427-1.106 1.427-2.1 0-1.37-.943-2.246-2.456-2.246H5.5v7.352h1.141z"></path>
+</svg></i> 7 dias para trocas e devoluções</span>
+    <br><span style="color: #008A00; font-size:14px; padding-left: 1px;"><i class="fas fa-check" style="vertical-align: middle;padding-right:4px;"></i> Garantia de 30 dias diretamente em nossa loja</span>
+  </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>

@@ -1,0 +1,42 @@
+{% assign A2MetaProduct = product.metafields.a2reviews %}
+<div class="container page-width a2reviews-container">
+{% if type == 'QA' %}
+    {% if shop.metafields.a2reviews.qa_status != 0 %}
+    <a2-questions
+      lang="{{ shop.locale }}"
+      handle="{{ product.handle }}">
+    </a2-questions>
+    {% endif %}
+{% else %}
+    <a2-reviews
+        handle="{{ product.handle }}"
+        lang="{{ shop.locale }}">
+        <div class="a2reviews-rating" itemscope itemprop="aggregateRating" itemtype="schema/AggregateRating" style="opacity:0;">
+            <meta itemprop="itemreviewed" content="{{ product.title }}">
+            Rated <span itemprop="ratingValue">{{ A2MetaProduct.avg_rating }}</span>/5
+            based on <span itemprop="reviewCount">{{ A2MetaProduct.total_rating }}</span> customer reviews
+        </div>
+    </a2-reviews>
+{% endif %}
+</div>
+<div style="width:100%;height:40px;clear:both;"></div>
+{% if template contains 'product' %}
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org/",
+    "@type": "AggregateRating",
+    "reviewCount": "{{ A2MetaProduct.total_rating }}",
+    "ratingValue": "{{ A2MetaProduct.avg_rating }}",
+    "itemReviewed": {
+      "@type" : "Product",
+      "name" : "{{ product.title }}",
+      "offers": {
+        "@type": "AggregateOffer",
+        "lowPrice": "{{ product.price | times:1.05 | money }}",
+        "highPrice": "{{ product.price | times:1.05 | money }}",
+        "priceCurrency": "USD"
+      }
+    }
+  }
+</script>
+{% endif %}
