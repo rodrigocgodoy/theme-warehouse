@@ -30,7 +30,9 @@
         ,   cartEndpoint = 'https://api.dooki.com.br/v2/public/shopify/cart'
         ,   statusEndpoint = 'https://api.dooki.com.br/v2/public/shopify/status'
         ,   shop = '{{ shop.secure_url }}'
-        ,   shopifyInternalUrl = '{{ shop.permanent_domain }}';
+        ,   shopifyInternalUrl = '{{ shop.permanent_domain }}'
+        ,   ymp_hasUrlSupport = 'undefined' !== typeof URL && 'undefined' !== typeof URLSearchParams
+        ,   ymp_utmCookieName = 'utmsTrack';
 
     window.yampiCheckoutUrl = '';
 
@@ -77,14 +79,14 @@
                     if (resp.skip_cart && resp.checkout_direct_url != '') {
                         // Limpa o carrinho do Shopify
                         if (resp.fb_fallback && isAndroid() && isFacebookBrowser()) {
-                            window.location = resp.checkout_direct_url;
+                            window.location = ymp_getUrlWithUtms(resp.checkout_direct_url);
 
                             setTimeout(function () {
                                 showYampiPurchaseConfirmation(resp.checkout_direct_url);
                             }, 500);
                         } else {
                             postAjax('/cart/clear.js', JSON.stringify({}), function () {
-                                window.location = resp.checkout_direct_url;
+                                window.location = ymp_getUrlWithUtms(resp.checkout_direct_url);
                             });
                         }
 
@@ -249,7 +251,7 @@
             postAjax(cartEndpoint, JSON.stringify(data), function (response) {
                 var resp = JSON.parse(response);
 
-                window.location.href = resp.checkout_direct_url;
+                window.location.href = ymp_getUrlWithUtms(resp.checkout_direct_url);
             });
         });
     }
@@ -269,7 +271,7 @@
             postAjax(cartEndpoint, JSON.stringify(data), function (response) {
                 var resp = JSON.parse(response);
 
-                window.location.href = resp.checkout_direct_url;
+                window.location.href = ymp_getUrlWithUtms(resp.checkout_direct_url);
             });
         });
     }
@@ -287,7 +289,7 @@
                 var resp = JSON.parse(response);
 
                 postAjax('/cart/clear.js', JSON.stringify({}), function () {
-                    window.location.href = resp.checkout_direct_url;
+                    window.location.href = ymp_getUrlWithUtms(resp.checkout_direct_url);
                 });
             });
         });
@@ -301,7 +303,7 @@
             e.preventDefault();
 
             if (currentPage == 'cart') {
-                window.location.href = window.yampiCheckoutUrl;
+                window.location.href = ymp_getUrlWithUtms(window.yampiCheckoutUrl);
             } else {
                 window.location = '/cart';
             }
@@ -319,6 +321,75 @@
       return ua.indexOf("android") > -1;
     }
 
+    if (ymp_hasUrlSupport) {
+        var ymp_terms = ['utm_source', 'utm_campaign', 'utm_term', 'utm_medium', 'utm_content'],
+            ymp_currentUrl = new URL(window.location.href),
+            ymp_urlParams = ymp_currentUrl.searchParams;
+
+        ymp_terms.forEach(function(term) {
+            if (ymp_urlParams.has(term)) {
+                ymp_setUtm(term, ymp_urlParams.get(term));
+            }
+        });
+    }
+
+    function ymp_getUrlWithUtms(url) {
+        if (!ymp_hasUrlSupport || !url) {
+            return url;
+        }
+
+        var currentUrl = new URL(url),
+            _ga = ymp_getCookie('_ga'),
+            cookiesUtms = ymp_getUtms();
+
+        cookiesUtms.forEach(function(value, key) {
+            currentUrl.searchParams.set(key, value);
+        });
+
+        if (_ga) {
+            currentUrl.searchParams.set('_ga', _ga);
+        }
+
+        return currentUrl.href;
+    }
+
+    function ymp_setUtm(term, value) {
+        var params = ymp_getUtms();
+
+        params.set(term, value);
+        ymp_setCookie(ymp_utmCookieName, params.toString(), 30);
+    }
+
+    function ymp_getUtms() {
+        var currentUtms = ymp_getCookie(ymp_utmCookieName);
+
+        if (currentUtms) {
+            return new URLSearchParams(currentUtms);
+        }
+
+        return new URLSearchParams();
+    }
+
+    function ymp_setCookie(name, value, days) {
+        var expires = "";
+        if (days) {
+            var date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "") + expires + "; path=/";
+    }
+
+    function ymp_getCookie(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+        }
+        return null;
+    }
 </script>
 
 <div id="yampiPurchaseConfirmationWrapper"><div><p class="yampi_purchase_title">✔️ Produto adicionado com sucesso.</p><button type="button" onclick="getNewCheckoutURL()" id="yampiPurchaseConfirmationButton" class="yampi_purchase_confirmation_btn">Finalizar compra</button></div></div>
